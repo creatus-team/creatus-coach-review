@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>크리투스 전문코치 2기 지원서 검토 시스템</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 28px;
+            flex: 1;
+            min-width: 150px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .label {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .stat-card.total .number { color: #667eea; }
+        .stat-card.pending .number { color: #f59e0b; }
+        .stat-card.pass .number { color: #10b981; }
+        .stat-card.fail .number { color: #ef4444; }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .filter-bar label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .filter-bar select, .filter-bar input {
+            padding: 10px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .filter-bar select:focus, .filter-bar input:focus {
+            border-color: #667eea;
+        }
+
+        .filter-bar input[type="text"] {
+            width: 250px;
+        }
+
+        .export-btn {
+            margin-left: auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Applicant Grid */
+        .applicant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 20px;
+        }
+
+        /* Applicant Card */
+        .applicant-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .applicant-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .applicant-card.status-pass {
+            border-left: 5px solid #10b981;
+        }
+
+        .applicant-card.status-pending {
+            border-left: 5px solid #f59e0b;
+        }
+
+        .applicant-card.status-fail {
+            border-left: 5px solid #ef4444;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .applicant-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .applicant-date {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-badge.pass {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-badge.fail {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .card-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .info-item {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .info-item .label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-item .value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a2e;
+            word-break: break-all;
+        }
+
+        .info-item .value a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .info-item .value a:hover {
+            text-decoration: underline;
+        }
+
+        .card-category {
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .card-category .label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .card-category .value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #667eea;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn.pass-btn {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .action-btn.pass-btn:hover, .action-btn.pass-btn.active {
+            background: #10b981;
+            color: white;
+        }
+
+        .action-btn.pending-btn {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .action-btn.pending-btn:hover, .action-btn.pending-btn.active {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .action-btn.fail-btn {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .action-btn.fail-btn:hover, .action-btn.fail-btn.active {
+            background: #ef4444;
+            color: white;
+        }
+
+        .view-detail-btn {
+            width: 100%;
+            padding: 12px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-detail-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 24px 32px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            color: #1a1a2e;
+        }
+
+        .modal-close {
+            background: #f1f5f9;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #e2e8f0;
+        }
+
+        .modal-body {
+            padding: 32px;
+        }
+
+        .modal-section {
+            margin-bottom: 28px;
+        }
+
+        .modal-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea20;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-section p {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #374151;
+            white-space: pre-wrap;
+        }
+
+        .modal-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .modal-info-item {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .modal-info-item .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .modal-info-item .value {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1a1a2e;
+        }
+
+        .modal-actions {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 20px 32px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .modal-actions .action-btn {
+            padding: 14px 32px;
+            font-size: 15px;
+        }
+
+        /* Memo Section */
+        .memo-section {
+            margin-top: 12px;
+        }
+
+        .memo-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .memo-textarea:focus {
+            border-color: #667eea;
+        }
+
+        .memo-textarea::placeholder {
+            color: #9ca3af;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: #6b7280;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .applicant-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-bar input[type="text"] {
+                width: 100%;
+            }
+
+            .export-btn {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+            }
+
+            .stat-card {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🧭 크리투스 전문코치 2기 지원서 검토</h1>
+            <p>지원자 정보를 검토하고 합격/보류/불합격 상태를 관리하세요</p>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-card total">
+                <div class="number" id="total-count">0</div>
+                <div class="label">전체 지원자</div>
+            </div>
+            <div class="stat-card pending">
+                <div class="number" id="pending-count">0</div>
+                <div class="label">미검토</div>
+            </div>
+            <div class="stat-card pass">
+                <div class="number" id="pass-count">0</div>
+                <div class="label">합격</div>
+            </div>
+            <div class="stat-card fail">
+                <div class="number" id="fail-count">0</div>
+                <div class="label">불합격</div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <label>상태:</label>
+            <select id="status-filter">
+                <option value="all">전체</option>
+                <option value="pending">미검토</option>
+                <option value="pass">합격</option>
+                <option value="fail">불합격</option>
+            </select>
+
+            <label>검색:</label>
+            <input type="text" id="search-input" placeholder="이름, 카테고리, 인스타그램 검색...">
+
+            <button class="export-btn" onclick="exportResults()">📥 결과 내보내기 (CSV)</button>
+        </div>
+
+        <!-- Applicant Grid -->
+        <div class="applicant-grid" id="applicant-grid">
+            <!-- Cards will be inserted here -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+            <h3>검색 결과가 없습니다</h3>
+            <p>다른 검색어나 필터를 시도해보세요</p>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modal-title">지원자 상세 정보</h2>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Content will be inserted here -->
+            </div>
+            <div class="modal-actions" id="modal-actions">
+                <!-- Actions will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let applicants = [];
+        let statuses = {}; // { id: 'pending' | 'pass' | 'fail' }
+        let memos = {}; // { id: 'memo text' }
+
+        // Load data
+        async function loadData() {
+            try {
+                const response = await fetch('applicants.json');
+                applicants = await response.json();
+                
+                // Load saved statuses and memos from localStorage
+                const savedStatuses = localStorage.getItem('coachReviewStatuses');
+                const savedMemos = localStorage.getItem('coachReviewMemos');
+                
+                if (savedStatuses) {
+                    statuses = JSON.parse(savedStatuses);
+                } else {
+                    // Initialize all as pending
+                    applicants.forEach(a => {
+                        statuses[a.id] = 'pending';
+                    });
+                }
+                
+                if (savedMemos) {
+                    memos = JSON.parse(savedMemos);
+                }
+                
+                renderApplicants();
+                updateStats();
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        // Save to localStorage
+        function saveData() {
+            localStorage.setItem('coachReviewStatuses', JSON.stringify(statuses));
+            localStorage.setItem('coachReviewMemos', JSON.stringify(memos));
+        }
+
+        // Update status
+        function updateStatus(id, status) {
+            statuses[id] = status;
+            saveData();
+            renderApplicants();
+            updateStats();
+        }
+
+        // Update memo
+        function updateMemo(id, memo) {
+            memos[id] = memo;
+            saveData();
+        }
+
+        // Update stats
+        function updateStats() {
+            const total = applicants.length;
+            const pending = Object.values(statuses).filter(s => s === 'pending').length;
+            const pass = Object.values(statuses).filter(s => s === 'pass').length;
+            const fail = Object.values(statuses).filter(s => s === 'fail').length;
+
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('pending-count').textContent = pending;
+            document.getElementById('pass-count').textContent = pass;
+            document.getElementById('fail-count').textContent = fail;
+        }
+
+        // Format Instagram link
+        function formatInstagram(instagram) {
+            if (!instagram) return '-';
+            let handle = instagram.trim();
+            if (handle.startsWith('http')) {
+                return `<a href="${handle}" target="_blank">${handle.split('/').pop() || handle}</a>`;
+            }
+            if (handle.startsWith('@')) {
+                return `<a href="https://instagram.com/${handle.slice(1)}" target="_blank">${handle}</a>`;
+            }
+            if (handle.startsWith('www.')) {
+                return `<a href="https://${handle}" target="_blank">${handle}</a>`;
+            }
+            return `<a href="https://instagram.com/${handle}" target="_blank">@${handle}</a>`;
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return `${date.getMonth() + 1}월 ${date.getDate()}일 ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        // Render applicants
+        function renderApplicants() {
+            const grid = document.getElementById('applicant-grid');
+            const emptyState = document.getElementById('empty-state');
+            const statusFilter = document.getElementById('status-filter').value;
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+
+            let filtered = applicants.filter(a => {
+                // Status filter
+                if (statusFilter !== 'all' && statuses[a.id] !== statusFilter) {
+                    return false;
+                }
+                // Search filter
+                if (searchQuery) {
+                    const searchFields = [
+                        a.name,
+                        a.category,
+                        a.instagram,
+                        a.experience
+                    ].join(' ').toLowerCase();
+                    if (!searchFields.includes(searchQuery)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            grid.innerHTML = filtered.map(a => {
+                const status = statuses[a.id] || 'pending';
+                const memo = memos[a.id] || '';
+                const statusLabels = {
+                    pending: '미검토',
+                    pass: '합격',
+                    fail: '불합격'
+                };
+
+                return `
+                    <div class="applicant-card status-${status}">
+                        <div class="card-header">
+                            <div>
+                                <div class="applicant-name">${a.name || '이름 없음'}</div>
+                                <div class="applicant-date">📅 ${formatDate(a.submitted_at)}</div>
+                            </div>
+                            <span class="status-badge ${status}">${statusLabels[status]}</span>
+                        </div>
+                        
+                        <div class="card-info">
+                            <div class="info-item">
+                                <div class="label">📱 전화번호</div>
+                                <div class="value">${a.phone || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">👥 팔로워</div>
+                                <div class="value">${a.followers || '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">📸 인스타그램</div>
+                                <div class="value">${formatInstagram(a.instagram)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">⏰ 가용 시간</div>
+                                <div class="value">${a.available_hours || '-'}</div>
+                            </div>
+                        </div>
+
+                        <div class="card-category">
+                            <div class="label">🎯 코칭 분야</div>
+                            <div class="value">${a.category || '-'}</div>
+                        </div>
+
+                        <div class="card-actions">
+                            <button class="action-btn pass-btn ${status === 'pass' ? 'active' : ''}" 
+                                    onclick="updateStatus('${a.id}', 'pass')">✓ 합격</button>
+                            <button class="action-btn pending-btn ${status === 'pending' ? 'active' : ''}" 
+                                    onclick="updateStatus('${a.id}', 'pending')">⏸ 보류</button>
+                            <button class="action-btn fail-btn ${status === 'fail' ? 'active' : ''}" 
+                                    onclick="updateStatus('${a.id}', 'fail')">✕ 불합격</button>
+                        </div>
+
+                        <button class="view-detail-btn" onclick="openModal('${a.id}')">
+                            📋 상세 정보 보기
+                        </button>
+
+                        <div class="memo-section">
+                            <textarea class="memo-textarea" 
+                                      placeholder="메모를 입력하세요..." 
+                                      onchange="updateMemo('${a.id}', this.value)">${memo}</textarea>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Open modal
+        function openModal(id) {
+            const applicant = applicants.find(a => a.id === id);
+            if (!applicant) return;
+
+            const status = statuses[id] || 'pending';
+            const modal = document.getElementById('modal-overlay');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const actions = document.getElementById('modal-actions');
+
+            title.textContent = `${applicant.name} 지원서`;
+
+            body.innerHTML = `
+                <div class="modal-section">
+                    <h3>기본 정보</h3>
+                    <div class="modal-info-grid">
+                        <div class="modal-info-item">
+                            <div class="label">이름</div>
+                            <div class="value">${applicant.name || '-'}</div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="label">전화번호</div>
+                            <div class="value">${applicant.phone || '-'}</div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="label">인스타그램</div>
+                            <div class="value">${formatInstagram(applicant.instagram)}</div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="label">팔로워 수</div>
+                            <div class="value">${applicant.followers || '-'}</div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="label">강의 수강 여부</div>
+                            <div class="value">${applicant.course_status || '-'}</div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="label">주간 가용 시간</div>
+                            <div class="value">${applicant.available_hours || '-'}</div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="label">코칭 분야</div>
+                            <div class="value">${applicant.category || '-'}</div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="label">지원일시</div>
+                            <div class="value">${applicant.submitted_at || '-'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>줌 피드백 가능 시간</h3>
+                    <p>${applicant.available_schedule || '-'}</p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>코칭/피드백 경험 및 성과</h3>
+                    <p>${applicant.experience || '-'}</p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>코치로서의 강점</h3>
+                    <p>${applicant.strengths || '-'}</p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>실전 테스트 - 영상 피드백</h3>
+                    <p>${applicant.test_feedback || '-'}</p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>피드백 프로세스 설명</h3>
+                    <p>${applicant.feedback_process || '-'}</p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>계정 개선 제안</h3>
+                    <p>${applicant.account_improvement || '-'}</p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>추가 메시지</h3>
+                    <p>${applicant.additional_notes || '-'}</p>
+                </div>
+            `;
+
+            actions.innerHTML = `
+                <button class="action-btn pass-btn ${status === 'pass' ? 'active' : ''}" 
+                        onclick="updateStatus('${id}', 'pass'); closeModal();">✓ 합격</button>
+                <button class="action-btn pending-btn ${status === 'pending' ? 'active' : ''}" 
+                        onclick="updateStatus('${id}', 'pending'); closeModal();">⏸ 보류</button>
+                <button class="action-btn fail-btn ${status === 'fail' ? 'active' : ''}" 
+                        onclick="updateStatus('${id}', 'fail'); closeModal();">✕ 불합격</button>
+            `;
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Export results
+        function exportResults() {
+            const headers = [
+                '이름', '전화번호', '인스타그램', '팔로워', '코칭분야', 
+                '가용시간', '상태', '메모', '지원일시'
+            ];
+
+            const rows = applicants.map(a => {
+                const statusLabels = { pending: '미검토', pass: '합격', fail: '불합격' };
+                return [
+                    a.name || '',
+                    a.phone || '',
+                    a.instagram || '',
+                    a.followers || '',
+                    a.category || '',
+                    a.available_hours || '',
+                    statusLabels[statuses[a.id]] || '미검토',
+                    (memos[a.id] || '').replace(/"/g, '""'),
+                    a.submitted_at || ''
+                ];
+            });
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `크리투스_코치_검토결과_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        // Event listeners
+        document.getElementById('status-filter').addEventListener('change', renderApplicants);
+        document.getElementById('search-input').addEventListener('input', renderApplicants);
+        document.getElementById('modal-overlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+</html>
