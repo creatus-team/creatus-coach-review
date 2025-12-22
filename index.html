@@ -506,6 +506,55 @@
             color: #6b7280;
         }
 
+        /* Qualification Check */
+        .qualification-check {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .qual-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .qual-badge.pass {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .qual-badge.fail {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .qual-badge .icon {
+            font-size: 12px;
+        }
+
+        .card-warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: #92400e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-warning .icon {
+            font-size: 14px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .applicant-grid {
@@ -700,6 +749,65 @@
             return `${date.getMonth() + 1}월 ${date.getDate()}일 ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
         }
 
+        // Parse followers count to number
+        function parseFollowers(followersStr) {
+            if (!followersStr) return 0;
+            const str = String(followersStr).toLowerCase().replace(/,/g, '').replace(/명/g, '').trim();
+            
+            // Handle Korean 만 (10,000)
+            if (str.includes('만')) {
+                const num = parseFloat(str.replace('만', '').trim());
+                return num * 10000;
+            }
+            // Handle k suffix
+            if (str.includes('k')) {
+                const num = parseFloat(str.replace('k', '').trim());
+                return num * 1000;
+            }
+            // Try to extract first number
+            const match = str.match(/[\d.]+/);
+            if (match) {
+                return parseFloat(match[0]);
+            }
+            return 0;
+        }
+
+        // Parse available hours to number
+        function parseHours(hoursStr) {
+            if (!hoursStr) return 0;
+            const str = String(hoursStr).toLowerCase();
+            
+            // Look for patterns like "5시간", "10시간 이상", "주 10시간"
+            const hourMatch = str.match(/(\d+)\s*시간/);
+            if (hourMatch) {
+                return parseInt(hourMatch[1]);
+            }
+            // Look for just numbers
+            const numMatch = str.match(/\d+/);
+            if (numMatch) {
+                return parseInt(numMatch[0]);
+            }
+            // If contains keywords suggesting high availability
+            if (str.includes('매일') || str.includes('언제든') || str.includes('가능')) {
+                return 10; // Assume meets requirement
+            }
+            return 0;
+        }
+
+        // Check qualification requirements
+        function checkQualifications(applicant) {
+            const followers = parseFollowers(applicant.followers);
+            const hours = parseHours(applicant.available_hours);
+            
+            return {
+                followersOk: followers >= 1000,
+                followersCount: followers,
+                hoursOk: hours >= 5,
+                hoursCount: hours,
+                allOk: followers >= 1000 && hours >= 5
+            };
+        }
+
         // Render applicants
         function renderApplicants() {
             const grid = document.getElementById('applicant-grid');
@@ -744,6 +852,11 @@
                     fail: '불합격'
                 };
 
+                const qual = checkQualifications(a);
+                const warningMsg = !qual.allOk ? 
+                    (!qual.followersOk && !qual.hoursOk ? '팔로워 1,000명 미만 / 가용시간 5시간 미만' :
+                     !qual.followersOk ? '팔로워 1,000명 미만' : '가용시간 5시간 미만') : '';
+
                 return `
                     <div class="applicant-card status-${status}">
                         <div class="card-header">
@@ -752,6 +865,24 @@
                                 <div class="applicant-date">📅 ${formatDate(a.submitted_at)}</div>
                             </div>
                             <span class="status-badge ${status}">${statusLabels[status]}</span>
+                        </div>
+
+                        ${!qual.allOk ? `
+                        <div class="card-warning">
+                            <span class="icon">⚠️</span>
+                            <span>${warningMsg}</span>
+                        </div>
+                        ` : ''}
+
+                        <div class="qualification-check">
+                            <div class="qual-badge ${qual.followersOk ? 'pass' : 'fail'}">
+                                <span class="icon">${qual.followersOk ? '✅' : '❌'}</span>
+                                <span>팔로워 ${qual.followersOk ? '1,000+' : '미달'}</span>
+                            </div>
+                            <div class="qual-badge ${qual.hoursOk ? 'pass' : 'fail'}">
+                                <span class="icon">${qual.hoursOk ? '✅' : '❌'}</span>
+                                <span>가용시간 ${qual.hoursOk ? '5h+' : '미달'}</span>
+                            </div>
                         </div>
                         
                         <div class="card-info">
