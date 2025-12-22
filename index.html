@@ -800,11 +800,11 @@
             const hours = parseHours(applicant.available_hours);
             
             return {
-                followersOk: followers >= 1000,
+                followersOk: followers >= 3000,
                 followersCount: followers,
-                hoursOk: hours >= 5,
+                hoursOk: hours >= 15,
                 hoursCount: hours,
-                allOk: followers >= 1000 && hours >= 5
+                allOk: followers >= 3000 && hours >= 15
             };
         }
 
@@ -854,8 +854,8 @@
 
                 const qual = checkQualifications(a);
                 const warningMsg = !qual.allOk ? 
-                    (!qual.followersOk && !qual.hoursOk ? '팔로워 1,000명 미만 / 가용시간 5시간 미만' :
-                     !qual.followersOk ? '팔로워 1,000명 미만' : '가용시간 5시간 미만') : '';
+                    (!qual.followersOk && !qual.hoursOk ? '팔로워 3,000명 미만 / 가용시간 15시간 미만' :
+                     !qual.followersOk ? '팔로워 3,000명 미만' : '가용시간 15시간 미만') : '';
 
                 return `
                     <div class="applicant-card status-${status}">
@@ -877,11 +877,11 @@
                         <div class="qualification-check">
                             <div class="qual-badge ${qual.followersOk ? 'pass' : 'fail'}">
                                 <span class="icon">${qual.followersOk ? '✅' : '❌'}</span>
-                                <span>팔로워 ${qual.followersOk ? '1,000+' : '미달'}</span>
+                                <span>팔로워 ${qual.followersOk ? '3,000+' : '미달'}</span>
                             </div>
                             <div class="qual-badge ${qual.hoursOk ? 'pass' : 'fail'}">
                                 <span class="icon">${qual.hoursOk ? '✅' : '❌'}</span>
-                                <span>가용시간 ${qual.hoursOk ? '5h+' : '미달'}</span>
+                                <span>가용시간 ${qual.hoursOk ? '15h+' : '미달'}</span>
                             </div>
                         </div>
                         
