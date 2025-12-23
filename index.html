@@ -76,6 +76,7 @@
         .stat-card.total .number { color: #667eea; }
         .stat-card.pending .number { color: #f59e0b; }
         .stat-card.pass .number { color: #10b981; }
+        .stat-card.hold .number { color: #6366f1; }
         .stat-card.fail .number { color: #ef4444; }
 
         /* Filter Bar */
@@ -164,6 +165,10 @@
             border-left: 5px solid #f59e0b;
         }
 
+        .applicant-card.status-hold {
+            border-left: 5px solid #6366f1;
+        }
+
         .applicant-card.status-fail {
             border-left: 5px solid #ef4444;
         }
@@ -202,6 +207,11 @@
         .status-badge.pass {
             background: #d1fae5;
             color: #059669;
+        }
+
+        .status-badge.hold {
+            background: #e0e7ff;
+            color: #4f46e5;
         }
 
         .status-badge.fail {
@@ -299,6 +309,16 @@
 
         .action-btn.pending-btn:hover, .action-btn.pending-btn.active {
             background: #f59e0b;
+            color: white;
+        }
+
+        .action-btn.hold-btn {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .action-btn.hold-btn:hover, .action-btn.hold-btn.active {
+            background: #6366f1;
             color: white;
         }
 
@@ -607,6 +627,10 @@
                 <div class="number" id="pass-count">0</div>
                 <div class="label">합격</div>
             </div>
+            <div class="stat-card hold">
+                <div class="number" id="hold-count">0</div>
+                <div class="label">보류</div>
+            </div>
             <div class="stat-card fail">
                 <div class="number" id="fail-count">0</div>
                 <div class="label">불합격</div>
@@ -620,6 +644,7 @@
                 <option value="all">전체</option>
                 <option value="pending">미검토</option>
                 <option value="pass">합격</option>
+                <option value="hold">보류</option>
                 <option value="fail">불합격</option>
             </select>
 
@@ -718,11 +743,13 @@
             const total = applicants.length;
             const pending = Object.values(statuses).filter(s => s === 'pending').length;
             const pass = Object.values(statuses).filter(s => s === 'pass').length;
+            const hold = Object.values(statuses).filter(s => s === 'hold').length;
             const fail = Object.values(statuses).filter(s => s === 'fail').length;
 
             document.getElementById('total-count').textContent = total;
             document.getElementById('pending-count').textContent = pending;
             document.getElementById('pass-count').textContent = pass;
+            document.getElementById('hold-count').textContent = hold;
             document.getElementById('fail-count').textContent = fail;
         }
 
@@ -849,6 +876,7 @@
                 const statusLabels = {
                     pending: '미검토',
                     pass: '합격',
+                    hold: '보류',
                     fail: '불합격'
                 };
 
@@ -912,8 +940,8 @@
                         <div class="card-actions">
                             <button class="action-btn pass-btn ${status === 'pass' ? 'active' : ''}" 
                                     onclick="updateStatus('${a.id}', 'pass')">✓ 합격</button>
-                            <button class="action-btn pending-btn ${status === 'pending' ? 'active' : ''}" 
-                                    onclick="updateStatus('${a.id}', 'pending')">⏸ 보류</button>
+                            <button class="action-btn hold-btn ${status === 'hold' ? 'active' : ''}" 
+                                    onclick="updateStatus('${a.id}', 'hold')">⏸ 보류</button>
                             <button class="action-btn fail-btn ${status === 'fail' ? 'active' : ''}" 
                                     onclick="updateStatus('${a.id}', 'fail')">✕ 불합격</button>
                         </div>
@@ -1023,8 +1051,8 @@
             actions.innerHTML = `
                 <button class="action-btn pass-btn ${status === 'pass' ? 'active' : ''}" 
                         onclick="updateStatus('${id}', 'pass'); closeModal();">✓ 합격</button>
-                <button class="action-btn pending-btn ${status === 'pending' ? 'active' : ''}" 
-                        onclick="updateStatus('${id}', 'pending'); closeModal();">⏸ 보류</button>
+                <button class="action-btn hold-btn ${status === 'hold' ? 'active' : ''}" 
+                        onclick="updateStatus('${id}', 'hold'); closeModal();">⏸ 보류</button>
                 <button class="action-btn fail-btn ${status === 'fail' ? 'active' : ''}" 
                         onclick="updateStatus('${id}', 'fail'); closeModal();">✕ 불합격</button>
             `;
